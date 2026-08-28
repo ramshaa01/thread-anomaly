@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable}`}>
+    <html lang="en" className={spaceGrotesk.variable}>
       <body className="antialiased min-h-screen flex flex-col font-sans">
         <AuthProvider>
           <CartProvider>
