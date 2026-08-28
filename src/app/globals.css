@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0B0B0C;
+  --surface: #161617;
+  --primary: #2E5E2A;
+  --accent: #5FA83D;
+  --yellow: #F2C230;
+  --text-main: #F2F2EF;
+  --text-muted: #9A9A96;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-yellow: var(--yellow);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --font-sans: var(--font-space-grotesk);
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  position: relative;
+}
+
+/* Warped Wireframe Grid Background */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  background-image: 
+    linear-gradient(rgba(242, 242, 239, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 242, 239, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: center;
+  transform: perspective(1000px) rotateX(60deg) scale(2);
+  transform-origin: top center;
+  opacity: 0.5;
+  mask-image: radial-gradient(circle at center top, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center top, black 0%, transparent 80%);
+  animation: grid-pulse 10s ease-in-out infinite alternate;
+}
+
+@keyframes grid-pulse {
+  0% { transform: perspective(1000px) rotateX(60deg) scale(2) translateY(0); }
+  100% { transform: perspective(1000px) rotateX(60deg) scale(2) translateY(20px); }
+}
+
+/* Custom glitch animation classes */
+@keyframes glitch-anim-1 {
+  0% { clip: rect(20px, 9999px, 95px, 0); }
+  20% { clip: rect(62px, 9999px, 86px, 0); }
+  40% { clip: rect(4px, 9999px, 33px, 0); }
+  60% { clip: rect(98px, 9999px, 64px, 0); }
+  80% { clip: rect(27px, 9999px, 5px, 0); }
+  100% { clip: rect(44px, 9999px, 71px, 0); }
+}
+
+@keyframes glitch-anim-2 {
+  0% { clip: rect(12px, 9999px, 59px, 0); }
+  20% { clip: rect(86px, 9999px, 9px, 0); }
+  40% { clip: rect(41px, 9999px, 97px, 0); }
+  60% { clip: rect(69px, 9999px, 22px, 0); }
+  80% { clip: rect(81px, 9999px, 47px, 0); }
+  100% { clip: rect(3px, 9999px, 78px, 0); }
+}
+
+.glitch-hover:hover::before, .glitch-hover:hover::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--background);
+}
+
+.glitch-hover:hover::before {
+  left: 2px;
+  text-shadow: -1px 0 var(--accent);
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim-1 2s infinite linear alternate-reverse;
+}
+
+.glitch-hover:hover::after {
+  left: -2px;
+  text-shadow: -1px 0 var(--yellow);
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim-2 2s infinite linear alternate-reverse;
 }
