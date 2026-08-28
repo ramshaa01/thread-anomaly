@@ -41,7 +41,7 @@ const USERS = [
     email: 'admin@threadanomaly.com',
     phone: '9000000001',
     // bcrypt hash of "admin123"
-    password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    password: '$2b$10$b86IuhQmJ.Ep/eljDovHYOlTvKWWlhGbHfzG22UxOv8LeU9d32xWC',
     role: 'admin',
   },
   {
@@ -50,7 +50,7 @@ const USERS = [
     email: 'customer@threadanomaly.com',
     phone: '9000000002',
     // bcrypt hash of "customer123"
-    password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    password: '$2b$10$h/zZxuAhk0F6uPGfhr3xgOVUFcD.Ie6Ej5T1n65FevQZ4/XZpxg8G',
     role: 'customer',
   },
 ];

@@ -9,7 +9,7 @@ export async function GET() {
     const token = (await cookies()).get('token')?.value;
     if (!token) return NextResponse.json({ user: null });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret') as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     await connectDB();
     const user = await User.findById(decoded.id).select('-password');
     

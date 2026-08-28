@@ -49,6 +49,6 @@ describe('Auth Middleware', () => {
     
     const admin = await getAdminUser();
     expect(admin).not.toBeNull();
-    expect(admin.role).toBe('admin');
+    expect(admin!.role).toBe('admin');
   });
 });
