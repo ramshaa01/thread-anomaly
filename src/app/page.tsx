@@ -1,9 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import {
+  motion as m,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+} from "motion/react";
 import ProductCard from "@/components/product/ProductCard";
+import { useFinePointer } from "@/hooks/use-fine-pointer";
 
 interface Product {
   _id: string;
@@ -19,10 +27,84 @@ interface Product {
   isBestSeller?: boolean;
 }
 
+function MagneticCTA({
+  href,
+  className,
+  children,
+}: {
+  href: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isFinePointer = useFinePointer();
+  const prefersReducedMotion = useReducedMotion();
+  const enabled = isFinePointer && !prefersReducedMotion;
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const relX = e.clientX - rect.left - rect.width / 2;
+    const relY = e.clientY - rect.top - rect.height / 2;
+    x.set(Math.max(-6, Math.min(6, relX * 0.3)));
+    y.set(Math.max(-6, Math.min(6, relY * 0.3)));
+  };
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <m.div
+      ref={containerRef}
+      className="inline-block"
+      style={{ x: springX, y: springY }}
+      onMouseMove={enabled ? handleMouseMove : undefined}
+      onMouseLeave={enabled ? handleMouseLeave : undefined}
+      whileTap={{ scale: 0.97 }}
+    >
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    </m.div>
+  );
+}
+
 export default function Home() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const heroRef = useRef<HTMLElement>(null);
+  const isFinePointer = useFinePointer();
+  const prefersReducedMotion = useReducedMotion();
+  const enableHeroMotion = isFinePointer && !prefersReducedMotion;
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+
+  const gridX = useTransform(springX, [-0.5, 0.5], [-10, 10]);
+  const gridY = useTransform(springY, [-0.5, 0.5], [-10, 10]);
+  const contentRotateX = useTransform(springY, [-0.5, 0.5], [2.5, -2.5]);
+  const contentRotateY = useTransform(springX, [-0.5, 0.5], [-2.5, 2.5]);
+
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handleHeroMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -37,48 +119,64 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative h-[85vh] flex items-center justify-center overflow-hidden border-b border-[#1e1e1f]">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(242,242,239,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(242,242,239,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [transform:perspective(1000px)_rotateX(60deg)_translateY(-100px)_scale(2.5)] opacity-40 pointer-events-none" />
+      <section
+        ref={heroRef}
+        onMouseMove={enableHeroMotion ? handleHeroMouseMove : undefined}
+        onMouseLeave={enableHeroMotion ? handleHeroMouseLeave : undefined}
+        className="relative h-[85vh] flex items-center justify-center overflow-hidden border-b border-[#1e1e1f]"
+      >
+        <m.div
+          style={{ x: gridX, y: gridY }}
+          className="absolute inset-0 bg-[linear-gradient(rgba(242,242,239,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(242,242,239,0.04)_1px,transparent_1px)] bg-[size:50px_50px] [transform:perspective(1000px)_rotateX(60deg)_translateY(-100px)_scale(2.5)] opacity-40 pointer-events-none"
+        />
 
-        <div className="relative z-10 text-center px-4 flex flex-col items-center">
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-xs font-bold uppercase tracking-[0.3em] text-[#5FA83D] mb-6"
-          >
-            New Drop Available
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4 relative glitch-hover text-[#F2F2EF]"
-            data-text="THREAD ANOMALY"
-          >
-            THREAD <span className="text-[#5FA83D]">ANOMALY</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-base md:text-lg text-[#9A9A96] font-medium tracking-wide mb-10 uppercase"
-          >
-            Threads That Break The Grid.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
-            <Link href="/shop" className="bg-[#2E5E2A] text-white font-black uppercase px-8 py-4 tracking-wider hover:bg-[#5FA83D] hover:scale-105 transition-all text-sm">
-              Shop Now
-            </Link>
-            <Link href="/shop?isNew=true" className="bg-transparent border-2 border-[#333] text-[#F2F2EF] font-black uppercase px-8 py-4 tracking-wider hover:border-[#F2C230] hover:text-[#F2C230] transition-colors text-sm">
-              New Drops
-            </Link>
-          </motion.div>
+        <div
+          className="relative z-10 text-center px-4 flex flex-col items-center"
+          style={{ perspective: 800 }}
+        >
+          <m.div style={{ rotateX: contentRotateX, rotateY: contentRotateY }}>
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-xs font-bold uppercase tracking-[0.3em] text-[#5FA83D] mb-6"
+            >
+              New Drop Available
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4 relative glitch-hover text-[#F2F2EF]"
+              data-text="THREAD ANOMALY"
+            >
+              THREAD <span className="text-[#5FA83D]">ANOMALY</span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="text-base md:text-lg text-[#9A9A96] font-medium tracking-wide mb-10 uppercase"
+            >
+              Threads That Break The Grid.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <MagneticCTA
+                href="/shop"
+                className="bg-[#2E5E2A] text-white font-black uppercase px-8 py-4 tracking-wider hover:bg-[#5FA83D] hover:scale-105 transition-all text-sm inline-block"
+              >
+                Shop Now
+              </MagneticCTA>
+              <Link href="/shop?isNew=true" className="bg-transparent border-2 border-[#333] text-[#F2F2EF] font-black uppercase px-8 py-4 tracking-wider hover:border-[#F2C230] hover:text-[#F2C230] transition-colors text-sm">
+                New Drops
+              </Link>
+            </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -136,8 +234,16 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {newArrivals.map((product) => (
-              <ProductCard key={product._id} product={{ ...product, id: product._id }} />
+            {newArrivals.map((product, i) => (
+              <m.div
+                key={product._id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+              >
+                <ProductCard product={{ ...product, id: product._id }} />
+              </m.div>
             ))}
           </div>
         )}
@@ -160,8 +266,16 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {bestSellers.map((product) => (
-              <ProductCard key={product._id} product={{ ...product, id: product._id }} />
+            {bestSellers.map((product, i) => (
+              <m.div
+                key={product._id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+              >
+                <ProductCard product={{ ...product, id: product._id }} />
+              </m.div>
             ))}
           </div>
         )}
@@ -176,17 +290,30 @@ export default function Home() {
             { name: "Priya K.", review: "The feedback loop oversized fit is exactly what I needed. Heavyweight cotton, not that flimsy stuff.", rating: 5 },
             { name: "Rohan T.", review: "Finally a brand that doesn't feel like every other streetwear clone. Anomaly 01 is a piece of art.", rating: 5 },
           ].map((review, i) => (
-            <div key={i} className="bg-[#161617] border border-[#222] p-6 hover:border-[#2E5E2A] transition-colors">
+            <m.div
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.4, delay: i * 0.04 }}
+              className="bg-[#161617] border border-[#222] p-6 hover:border-[#2E5E2A] transition-colors"
+            >
               <div className="text-[#F2C230] mb-3">{"★".repeat(review.rating)}</div>
               <p className="text-[#9A9A96] mb-4 leading-relaxed italic">"{review.review}"</p>
               <span className="font-bold uppercase text-sm text-[#5FA83D]">— {review.name}</span>
-            </div>
+            </m.div>
           ))}
         </div>
       </section>
 
       {/* Newsletter */}
-      <section className="py-20 px-4 max-w-7xl mx-auto border-t border-[#161617] text-center">
+      <m.section
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.4 }}
+        className="py-20 px-4 max-w-7xl mx-auto border-t border-[#161617] text-center"
+      >
         <h2 className="text-3xl font-black uppercase tracking-tighter mb-4 text-[#F2F2EF]">Join The Underground</h2>
         <p className="text-[#9A9A96] max-w-md mx-auto mb-8">Early access to limited drops, unreleased audio from our collabs, and studio updates.</p>
         <form className="flex max-w-md mx-auto gap-3" onSubmit={(e) => e.preventDefault()}>
@@ -195,7 +322,7 @@ export default function Home() {
             Subscribe
           </button>
         </form>
-      </section>
+      </m.section>
     </div>
   );
 }

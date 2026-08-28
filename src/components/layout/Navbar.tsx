@@ -65,7 +65,10 @@ export default function Navbar() {
           <Link href="/checkout" className="relative hover:text-[#5FA83D] transition-colors">
             <ShoppingBag size={20} />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-[#F2C230] text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span
+                key={cartCount}
+                className="badge-bump absolute -top-2 -right-2 bg-[#F2C230] text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
+              >
                 {cartCount}
               </span>
             )}

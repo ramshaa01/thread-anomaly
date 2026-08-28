@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { motion } from "motion/react";
+import { Check } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/product/ProductCard";
@@ -35,6 +37,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
 
   const { addToCart } = useCart();
   const { user } = useAuth();
@@ -78,6 +81,8 @@ export default function ProductDetail() {
       color: selectedColor,
       quantity,
     });
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1200);
   };
 
   const handleBuyNow = () => {
@@ -220,9 +225,22 @@ export default function ProductDetail() {
               <button onClick={() => setQuantity(quantity + 1)} className="text-[#9A9A96] hover:text-white flex-1 py-4 text-center font-bold">+</button>
             </div>
             <div className="flex-1 flex flex-col gap-3">
-              <button onClick={handleAddToCart} className="w-full bg-transparent border-2 border-[#F2F2EF] text-[#F2F2EF] font-black uppercase py-4 hover:bg-[#F2F2EF] hover:text-[#0B0B0C] transition-colors">
-                Add To Bag
-              </button>
+              <motion.button
+                onClick={handleAddToCart}
+                whileTap={{ scale: 0.97 }}
+                className="w-full bg-transparent border-2 border-[#F2F2EF] text-[#F2F2EF] font-black uppercase py-4 hover:bg-[#F2F2EF] hover:text-[#0B0B0C] transition-colors flex items-center justify-center gap-2"
+              >
+                <motion.span
+                  key={justAdded ? "added" : "idle"}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="flex items-center gap-2"
+                >
+                  {justAdded && <Check size={18} />}
+                  {justAdded ? "Added To Bag" : "Add To Bag"}
+                </motion.span>
+              </motion.button>
               <button onClick={handleBuyNow} className="w-full bg-[#2E5E2A] text-white font-black uppercase py-4 hover:bg-[#5FA83D] transition-colors">
                 Buy It Now
               </button>

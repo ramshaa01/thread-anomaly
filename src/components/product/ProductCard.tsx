@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { Heart, ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart, Check } from "lucide-react";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useFinePointer } from "@/hooks/use-fine-pointer";
 
 // Flexible product type that works with both static data and DB data
 export interface ProductCardProps {
@@ -25,9 +27,38 @@ export interface ProductCardProps {
 export default function ProductCard({ product }: { product: ProductCardProps }) {
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const [justAdded, setJustAdded] = useState(false);
+
+  const imageRef = useRef<HTMLDivElement>(null);
+  const isFinePointer = useFinePointer();
+  const prefersReducedMotion = useReducedMotion();
+  const tiltEnabled = isFinePointer && !prefersReducedMotion;
+
+  const rotateXValue = useMotionValue(0);
+  const rotateYValue = useMotionValue(0);
+  const liftY = useMotionValue(0);
+  const springRotateX = useSpring(rotateXValue, { stiffness: 200, damping: 20 });
+  const springRotateY = useSpring(rotateYValue, { stiffness: 200, damping: 20 });
+  const springLiftY = useSpring(liftY, { stiffness: 250, damping: 22 });
 
   const productLink = product.slug ? `/product/${product.slug}` : `/product/${product.id}`;
   const primaryImage = product.images?.[0] || product.image || null;
+  const secondaryImage = product.images?.[1] || null;
+
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    rotateYValue.set(px * 10);
+    rotateXValue.set(py * -10);
+    liftY.set(-4);
+  };
+  const handleImageMouseLeave = () => {
+    rotateXValue.set(0);
+    rotateYValue.set(0);
+    liftY.set(0);
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -45,16 +76,39 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
       color: product.colors[0],
       quantity: 1,
     });
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1200);
   };
 
   return (
     <Link href={productLink} className="group block relative">
       {/* Image Container */}
-      <div className="relative aspect-[4/5] bg-[#161617] overflow-hidden mb-4 border border-[#222] group-hover:border-[#5FA83D] transition-colors">
+      <motion.div
+        ref={imageRef}
+        onMouseMove={tiltEnabled ? handleImageMouseMove : undefined}
+        onMouseLeave={tiltEnabled ? handleImageMouseLeave : undefined}
+        style={{
+          rotateX: springRotateX,
+          rotateY: springRotateY,
+          y: springLiftY,
+          transformPerspective: 600,
+        }}
+        className="relative aspect-[4/5] bg-[#161617] overflow-hidden mb-4 border border-[#222] group-hover:border-[#5FA83D] group-hover:shadow-[0_16px_32px_-12px_rgba(0,0,0,0.6)] transition-[border-color,box-shadow] duration-300"
+      >
         <div className="absolute inset-0 flex items-center justify-center font-mono text-[#333] text-sm transform group-hover:scale-105 transition-transform duration-500">
           {primaryImage && !primaryImage.includes("placeholder") ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
+              {secondaryImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={secondaryImage}
+                  alt={`${product.name} alternate view`}
+                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                />
+              )}
+            </>
           ) : (
             <span className="group-hover:text-[#5FA83D] transition-colors">[{product.name}]</span>
           )}
@@ -72,17 +126,27 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
 
         {/* Quick Actions */}
         <div className="absolute bottom-0 left-0 w-full p-4 flex gap-2 translate-y-full group-hover:translate-y-0 transition-transform bg-gradient-to-t from-black/80 to-transparent z-10">
-          <button
+          <motion.button
             onClick={handleAddToCart}
+            whileTap={{ scale: 0.95 }}
             className="flex-1 bg-white text-black font-bold uppercase text-xs py-3 hover:bg-[#5FA83D] hover:text-white transition-colors flex items-center justify-center gap-2"
           >
-            <ShoppingCart size={14} /> Add
-          </button>
+            <motion.span
+              key={justAdded ? "added" : "idle"}
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="flex items-center gap-2"
+            >
+              {justAdded ? <Check size={14} /> : <ShoppingCart size={14} />}
+              {justAdded ? "Added" : "Add"}
+            </motion.span>
+          </motion.button>
           <button className="w-10 h-10 bg-[#222] text-white flex items-center justify-center hover:bg-[#F2C230] hover:text-black transition-colors">
             <Heart size={16} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Info */}
       <div>
