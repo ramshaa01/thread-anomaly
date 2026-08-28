@@ -59,7 +59,7 @@ export default function Checkout() {
       if (!resLoad) throw new Error("Razorpay SDK failed to load");
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_fallback",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
         amount: data.amount,
         currency: data.currency,
         name: "Thread Anomaly",
