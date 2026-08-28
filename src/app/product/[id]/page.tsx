@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
 import { Check } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useFinePointer } from "@/hooks/use-fine-pointer";
 import ProductCard from "@/components/product/ProductCard";
+import { LoginPrompt } from "@/components/ui/LoginPrompt";
 
 interface Product {
   _id: string;
@@ -38,9 +40,33 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const { addToCart } = useCart();
   const { user } = useAuth();
+
+  const imageRef = useRef<HTMLDivElement>(null);
+  const isFinePointer = useFinePointer();
+  const prefersReducedMotion = useReducedMotion();
+  const tiltEnabled = isFinePointer && !prefersReducedMotion;
+
+  const rotateXValue = useMotionValue(0);
+  const rotateYValue = useMotionValue(0);
+  const springRotateX = useSpring(rotateXValue, { stiffness: 200, damping: 20 });
+  const springRotateY = useSpring(rotateYValue, { stiffness: 200, damping: 20 });
+
+  const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageRef.current) return;
+    const rect = imageRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    rotateYValue.set(px * 8);
+    rotateXValue.set(py * -8);
+  };
+  const handleImageMouseLeave = () => {
+    rotateXValue.set(0);
+    rotateYValue.set(0);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -67,7 +93,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!user) {
-      alert("Please login or create an account to add products to your cart.");
+      setShowLoginPrompt(true);
       router.push("/login");
       return;
     }
@@ -93,12 +119,12 @@ export default function ProductDetail() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-12 animate-pulse">
-          <div className="lg:w-1/2 aspect-[4/5] bg-[#161617] border border-[#333]" />
+        <div className="flex flex-col lg:flex-row gap-12">
+          <div className="lg:w-1/2 aspect-[4/5] border border-[#333] skeleton-shimmer" />
           <div className="lg:w-1/2 space-y-6 pt-8">
-            <div className="h-8 bg-[#161617] w-1/2 rounded" />
-            <div className="h-12 bg-[#161617] w-3/4 rounded" />
-            <div className="h-6 bg-[#161617] w-1/4 rounded" />
+            <div className="h-8 w-1/2 rounded skeleton-shimmer" />
+            <div className="h-12 w-3/4 rounded skeleton-shimmer" />
+            <div className="h-6 w-1/4 rounded skeleton-shimmer" />
           </div>
         </div>
       </div>
@@ -122,7 +148,17 @@ export default function ProductDetail() {
       <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 mb-24">
         {/* Image Gallery */}
         <div className="lg:w-1/2 flex flex-col gap-4">
-          <div className="aspect-[4/5] bg-[#161617] border border-[#333] flex items-center justify-center relative overflow-hidden group hover:border-[#5FA83D] transition-colors">
+          <motion.div
+            ref={imageRef}
+            onMouseMove={tiltEnabled ? handleImageMouseMove : undefined}
+            onMouseLeave={tiltEnabled ? handleImageMouseLeave : undefined}
+            style={{
+              rotateX: springRotateX,
+              rotateY: springRotateY,
+              transformPerspective: 800,
+            }}
+            className="aspect-[4/5] bg-[#161617] border border-[#333] flex items-center justify-center relative overflow-hidden group hover:border-[#5FA83D] transition-colors"
+          >
             <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(95,168,61,0.03)_50%)] bg-[length:100%_4px] pointer-events-none z-10" />
             <span className="font-mono text-[#9A9A96] group-hover:text-[#5FA83D] transition-colors text-sm">
               [{product.name}]
@@ -133,7 +169,7 @@ export default function ProductDetail() {
             {product.isNew && (
               <span className="absolute top-4 right-4 z-20 bg-[#2E5E2A] text-white text-xs font-bold uppercase px-3 py-1 tracking-wider">New</span>
             )}
-          </div>
+          </motion.div>
           <div className="grid grid-cols-2 gap-4">
             <div className="aspect-square bg-[#161617] border border-[#333] flex items-center justify-center font-mono text-[#333] text-xs hover:border-[#5FA83D] transition-colors">/alt_1</div>
             <div className="aspect-square bg-[#161617] border border-[#333] flex items-center justify-center font-mono text-[#333] text-xs hover:border-[#5FA83D] transition-colors">/alt_2</div>
@@ -260,12 +296,21 @@ export default function ProductDetail() {
         <section className="border-t border-[#222] pt-20">
           <h2 className="text-3xl font-black uppercase tracking-tighter mb-10 text-[#F2F2EF]">Similar Anomalies</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {related.map((p) => (
-              <ProductCard key={p._id} product={{ ...p, id: p._id }} />
+            {related.map((p, i) => (
+              <motion.div
+                key={p._id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+              >
+                <ProductCard product={{ ...p, id: p._id }} />
+              </motion.div>
             ))}
           </div>
         </section>
       )}
+      <LoginPrompt show={showLoginPrompt} />
     </div>
   );
 }

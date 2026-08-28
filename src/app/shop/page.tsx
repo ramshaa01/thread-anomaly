@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { ChevronDown, Filter } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import ProductCard from "@/components/product/ProductCard";
 
 interface Product {
@@ -111,23 +112,53 @@ export default function Shop() {
 
         {/* Grid */}
         <div className="flex-1">
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-[4/5] bg-[#161617] border border-[#222] animate-pulse" />
-              ))}
-            </div>
-          ) : products.length === 0 ? (
-            <div className="py-20 text-center text-[#9A9A96] font-bold uppercase">
-              No signal found for this category.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {products.map((product) => (
-                <ProductCard key={product._id} product={{ ...product, id: product._id }} />
-              ))}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="aspect-[4/5] border border-[#222] skeleton-shimmer" />
+                ))}
+              </motion.div>
+            ) : products.length === 0 ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="py-20 text-center text-[#9A9A96] font-bold uppercase"
+              >
+                No signal found for this category.
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`${activeCategory}-${activeSort}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+              >
+                {products.map((product, i) => (
+                  <motion.div
+                    key={product._id}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.03 }}
+                  >
+                    <ProductCard product={{ ...product, id: product._id }} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

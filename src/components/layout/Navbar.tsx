@@ -25,8 +25,8 @@ export default function Navbar() {
         </button>
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-black border border-white flex items-center justify-center relative overflow-hidden group-hover:border-[#00FF41] transition-colors">
+        <Link href="/" className="flex items-center gap-2 group" style={{ perspective: 400 }}>
+          <div className="w-8 h-8 bg-black border border-white flex items-center justify-center relative overflow-hidden group-hover:border-[#00FF41] group-hover:rotate-6 transition-all duration-300">
             {/* Pixel Spider Abstraction */}
             <div className="w-4 h-4 bg-[#00FF41] absolute"></div>
             <div className="w-2 h-2 bg-[#FFEA00] absolute top-1 right-1"></div>
@@ -39,10 +39,17 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8 font-bold text-sm uppercase tracking-wide">
-          <Link href="/" className="hover:text-[#5FA83D] transition-colors">Home</Link>
-          <Link href="/shop" className="hover:text-[#5FA83D] transition-colors">Shop</Link>
-          <Link href="/about" className="hover:text-[#5FA83D] transition-colors">About</Link>
-          <Link href="/contact" className="hover:text-[#5FA83D] transition-colors">Contact</Link>
+          {[
+            { href: "/", label: "Home" },
+            { href: "/shop", label: "Shop" },
+            { href: "/about", label: "About" },
+            { href: "/contact", label: "Contact" },
+          ].map((link) => (
+            <Link key={link.href} href={link.href} className="relative group py-1 hover:text-[#5FA83D] transition-colors">
+              {link.label}
+              <span className="absolute left-0 -bottom-0.5 h-[1.5px] w-full bg-[#5FA83D] scale-x-0 group-hover:scale-x-100 origin-center transition-transform duration-300" />
+            </Link>
+          ))}
         </nav>
 
         {/* Icons */}

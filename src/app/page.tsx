@@ -106,6 +106,25 @@ export default function Home() {
     mouseY.set(0);
   };
 
+  const dropBoxRef = useRef<HTMLDivElement>(null);
+  const dropRotateX = useMotionValue(0);
+  const dropRotateY = useMotionValue(0);
+  const dropSpringRotateX = useSpring(dropRotateX, { stiffness: 200, damping: 20 });
+  const dropSpringRotateY = useSpring(dropRotateY, { stiffness: 200, damping: 20 });
+
+  const handleDropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!dropBoxRef.current) return;
+    const rect = dropBoxRef.current.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    dropRotateY.set(px * 16);
+    dropRotateX.set(py * -16);
+  };
+  const handleDropMouseLeave = () => {
+    dropRotateX.set(0);
+    dropRotateY.set(0);
+  };
+
   useEffect(() => {
     Promise.all([
       fetch("/api/products?isNew=true").then((r) => r.json()),
@@ -193,7 +212,13 @@ export default function Home() {
 
       {/* Limited Drop Banner */}
       <section className="py-20 px-4 max-w-7xl mx-auto">
-        <div className="bg-[#161617] border border-[#222] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+        <m.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#161617] border border-[#222] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group"
+        >
           <div className="absolute top-0 right-0 w-72 h-72 bg-[#F2C230] blur-[180px] opacity-5 group-hover:opacity-10 transition-opacity" />
           <div className="z-10">
             <span className="inline-block bg-[#F2C230] text-black text-xs font-bold uppercase px-3 py-1 mb-4 tracking-widest">
@@ -209,12 +234,21 @@ export default function Home() {
               Secure Yours
             </Link>
           </div>
-          <div className="z-10 relative">
-            <div className="w-56 h-56 bg-[#0B0B0C] border-2 border-dashed border-[#444] flex items-center justify-center rotate-3 group-hover:rotate-0 group-hover:border-[#F2C230] transition-all duration-500">
+          <div className="z-10 relative" style={{ perspective: 600 }}>
+            <m.div
+              ref={dropBoxRef}
+              onMouseMove={enableHeroMotion ? handleDropMouseMove : undefined}
+              onMouseLeave={enableHeroMotion ? handleDropMouseLeave : undefined}
+              initial={{ rotate: 3 }}
+              whileHover={{ rotate: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ rotateX: dropSpringRotateX, rotateY: dropSpringRotateY }}
+              className="w-56 h-56 bg-[#0B0B0C] border-2 border-dashed border-[#444] flex items-center justify-center group-hover:border-[#F2C230] transition-colors duration-500"
+            >
               <span className="font-mono text-[#444] text-xs">/signal.jpg</span>
-            </div>
+            </m.div>
           </div>
-        </div>
+        </m.div>
       </section>
 
       {/* New Arrivals */}
@@ -230,7 +264,7 @@ export default function Home() {
         </div>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] bg-[#161617] animate-pulse" />)}
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] skeleton-shimmer" />)}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -262,7 +296,7 @@ export default function Home() {
         </div>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] bg-[#161617] animate-pulse" />)}
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[4/5] skeleton-shimmer" />)}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">

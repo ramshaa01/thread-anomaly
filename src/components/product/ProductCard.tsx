@@ -2,11 +2,13 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Check } from "lucide-react";
-import { motion, useMotionValue, useSpring, useReducedMotion } from "motion/react";
+import { motion, useMotionValue, useSpring, useReducedMotion, useMotionTemplate } from "motion/react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useFinePointer } from "@/hooks/use-fine-pointer";
+import { LoginPrompt } from "@/components/ui/LoginPrompt";
 
 // Flexible product type that works with both static data and DB data
 export interface ProductCardProps {
@@ -27,7 +29,9 @@ export interface ProductCardProps {
 export default function ProductCard({ product }: { product: ProductCardProps }) {
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const router = useRouter();
   const [justAdded, setJustAdded] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const imageRef = useRef<HTMLDivElement>(null);
   const isFinePointer = useFinePointer();
@@ -37,9 +41,12 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
   const rotateXValue = useMotionValue(0);
   const rotateYValue = useMotionValue(0);
   const liftY = useMotionValue(0);
+  const glareX = useMotionValue(50);
+  const glareY = useMotionValue(50);
   const springRotateX = useSpring(rotateXValue, { stiffness: 200, damping: 20 });
   const springRotateY = useSpring(rotateYValue, { stiffness: 200, damping: 20 });
   const springLiftY = useSpring(liftY, { stiffness: 250, damping: 22 });
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.10), transparent 55%)`;
 
   const productLink = product.slug ? `/product/${product.slug}` : `/product/${product.id}`;
   const primaryImage = product.images?.[0] || product.image || null;
@@ -53,6 +60,8 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
     rotateYValue.set(px * 10);
     rotateXValue.set(py * -10);
     liftY.set(-4);
+    glareX.set((px + 0.5) * 100);
+    glareY.set((py + 0.5) * 100);
   };
   const handleImageMouseLeave = () => {
     rotateXValue.set(0);
@@ -63,8 +72,11 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user) {
-      alert("Please login or create an account to add products to your cart.");
-      window.location.href = "/login";
+      setShowLoginPrompt(true);
+      setTimeout(() => {
+        setShowLoginPrompt(false);
+        router.push("/login");
+      }, 1500);
       return;
     }
     addToCart({
@@ -113,6 +125,12 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
             <span className="group-hover:text-[#5FA83D] transition-colors">[{product.name}]</span>
           )}
         </div>
+
+        {/* Cursor glare */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-[5]"
+          style={{ background: glareBackground }}
+        />
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
@@ -165,6 +183,7 @@ export default function ProductCard({ product }: { product: ProductCardProps }) 
           )}
         </div>
       </div>
+      <LoginPrompt show={showLoginPrompt} />
     </Link>
   );
 }
