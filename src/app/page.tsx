@@ -333,7 +333,7 @@ export default function Home() {
               className="bg-[#161617] border border-[#222] p-6 hover:border-[#2E5E2A] transition-colors"
             >
               <div className="text-[#F2C230] mb-3">{"★".repeat(review.rating)}</div>
-              <p className="text-[#9A9A96] mb-4 leading-relaxed italic">"{review.review}"</p>
+              <p className="text-[#9A9A96] mb-4 leading-relaxed italic">&ldquo;{review.review}&rdquo;</p>
               <span className="font-bold uppercase text-sm text-[#5FA83D]">— {review.name}</span>
             </m.div>
           ))}

@@ -1,8 +1,5 @@
-import mongoose from 'mongoose';
 import connectDB from '@/lib/db';
 import User from '@/lib/models/User';
-import Product from '@/lib/models/Product';
-import Order from '@/lib/models/Order';
 
 export default async function AdminUsersPage() {
   await connectDB();

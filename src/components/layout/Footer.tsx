@@ -14,7 +14,7 @@ export default function Footer() {
             <span className="font-bold text-lg tracking-tighter uppercase">THREAD ANOMALY</span>
           </Link>
           <p className="text-[#888] max-w-sm mb-6">
-            Threads that break the grid. Made for people who don't fit the pattern.
+            Threads that break the grid. Made for people who don&apos;t fit the pattern.
           </p>
           <form className="flex gap-2">
             <input 

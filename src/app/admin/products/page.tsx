@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import connectDB from '@/lib/db';
 import Product from '@/lib/models/Product';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import DeleteProductButton from '@/components/admin/DeleteProductButton';
 
 export default async function AdminProducts() {

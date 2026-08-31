@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import ProductCard from "@/components/product/ProductCard";
