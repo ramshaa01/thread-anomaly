@@ -1,36 +1,36 @@
 import crypto from 'crypto';
+import { verifyRazorpaySignature } from '@/lib/razorpay';
 
 describe('Razorpay Signature Verification', () => {
-  it('should verify a valid signature', () => {
-    const razorpay_order_id = 'order_123';
-    const razorpay_payment_id = 'pay_456';
-    const secret = 'test_secret_key';
-    
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
+  const secret = 'test_secret_key';
+  const razorpay_order_id = 'order_123';
+  const razorpay_payment_id = 'pay_456';
+
+  it('should verify a signature actually computed with the correct secret', () => {
+    const validSignature = crypto
       .createHmac('sha256', secret)
-      .update(body.toString())
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    // Simulate the logic in our API route
-    const isAuthentic = expectedSignature === expectedSignature;
-    expect(isAuthentic).toBe(true);
+    expect(
+      verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, validSignature, secret)
+    ).toBe(true);
   });
 
-  it('should reject an invalid signature', () => {
-    const razorpay_order_id = 'order_123';
-    const razorpay_payment_id = 'pay_456';
-    const secret = 'test_secret_key';
-    
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(body.toString())
+  it('should reject a tampered/invalid signature', () => {
+    expect(
+      verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, 'invalid_signature_string', secret)
+    ).toBe(false);
+  });
+
+  it('should reject a signature computed with the wrong secret', () => {
+    const signatureFromWrongSecret = crypto
+      .createHmac('sha256', 'a_different_secret')
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    const invalidSignature = 'invalid_signature_string';
-    
-    const isAuthentic = expectedSignature === invalidSignature;
-    expect(isAuthentic).toBe(false);
+    expect(
+      verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, signatureFromWrongSecret, secret)
+    ).toBe(false);
   });
 });
