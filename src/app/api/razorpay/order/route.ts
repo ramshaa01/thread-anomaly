@@ -5,6 +5,7 @@ import Product from '@/lib/models/Product';
 import Order from '@/lib/models/Order';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { calculateOrderTotal } from '@/lib/order';
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -32,27 +33,15 @@ export async function POST(req: Request) {
     }
 
     // Calculate total from DB prices to prevent tampering
-    let total = 0;
-    const orderItems = [];
-
+    const products = [];
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product) return NextResponse.json({ error: `Product not found: ${item.name}` }, { status: 404 });
-      
-      const price = product.salePrice || product.price;
-      total += price * item.quantity;
-      
-      orderItems.push({
-        productId: product._id,
-        name: product.name,
-        price,
-        image: item.image,
-        size: item.size,
-        color: item.color,
-        quantity: item.quantity
-      });
+      products.push(product);
     }
-    
+
+    const { items: orderItems, total } = calculateOrderTotal(items, products);
+
     const shippingAmount = total > 0 ? 150 : 0;
     const finalTotal = total + shippingAmount;
 
