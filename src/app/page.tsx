@@ -225,28 +225,31 @@ export default function Home() {
               Urgent Broadcast
             </span>
             <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 text-[#F2F2EF]">
-              Midnight Signal <br /><span className="text-[#9A9A96]">Drop 04</span>
+              Circumcision Survivor <br /><span className="text-[#9A9A96]">Special Edition</span>
             </h2>
             <p className="text-[#9A9A96] max-w-md mb-8">
-              Reflective 3M prints on heavy 240GSM cotton. Strictly limited to 75 pieces. Zero reprints, ever.
+              Vintage bootleg-style aesthetic on heavy 240GSM cotton. Strictly limited drop. Zero reprints, ever.
             </p>
-            <Link href="/product/midnight-signal" className="inline-flex bg-[#F2F2EF] text-black font-black uppercase px-6 py-3 text-sm tracking-wider hover:bg-[#5FA83D] hover:text-white transition-colors">
+            <Link href="/product/circumcision-survivor" className="inline-flex bg-[#F2F2EF] text-black font-black uppercase px-6 py-3 text-sm tracking-wider hover:bg-[#5FA83D] hover:text-white transition-colors">
               Secure Yours
             </Link>
           </div>
           <div className="z-10 relative" style={{ perspective: 600 }}>
-            <m.div
-              ref={dropBoxRef}
-              onMouseMove={enableHeroMotion ? handleDropMouseMove : undefined}
-              onMouseLeave={enableHeroMotion ? handleDropMouseLeave : undefined}
-              initial={{ rotate: 3 }}
-              whileHover={{ rotate: 0 }}
-              transition={{ duration: 0.5 }}
-              style={{ rotateX: dropSpringRotateX, rotateY: dropSpringRotateY }}
-              className="w-56 h-56 bg-[#0B0B0C] border-2 border-dashed border-[#444] flex items-center justify-center group-hover:border-[#F2C230] transition-colors duration-500"
-            >
-              <span className="font-mono text-[#444] text-xs">/signal.jpg</span>
-            </m.div>
+            <Link href="/product/circumcision-survivor">
+              <m.div
+                ref={dropBoxRef}
+                onMouseMove={enableHeroMotion ? handleDropMouseMove : undefined}
+                onMouseLeave={enableHeroMotion ? handleDropMouseLeave : undefined}
+                initial={{ rotate: 3 }}
+                whileHover={{ rotate: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{ rotateX: dropSpringRotateX, rotateY: dropSpringRotateY }}
+                className="w-56 h-56 bg-[#0B0B0C] border-2 border-[#444] overflow-hidden flex items-center justify-center group-hover:border-[#F2C230] transition-colors duration-500"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/products/circumcision-survivor.jpg" alt="Circumcision Survivor" className="w-full h-full object-cover" />
+              </m.div>
+            </Link>
           </div>
         </m.div>
       </section>

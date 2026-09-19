@@ -39,6 +39,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [justAdded, setJustAdded] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
@@ -102,7 +103,7 @@ export default function ProductDetail() {
       productId: product._id,
       name: product.name,
       price: product.salePrice || product.price,
-      image: product.images[0] || "",
+      image: product.images[selectedImageIndex] || product.images[0] || "",
       size: selectedSize,
       color: selectedColor,
       quantity,
@@ -159,10 +160,19 @@ export default function ProductDetail() {
             }}
             className="aspect-[4/5] bg-[#161617] border border-[#333] flex items-center justify-center relative overflow-hidden group hover:border-[#5FA83D] transition-colors"
           >
+            {product.images && product.images.length > 0 && !product.images[selectedImageIndex]?.includes("placeholder") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.images[selectedImageIndex] || product.images[0]}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="font-mono text-[#9A9A96] group-hover:text-[#5FA83D] transition-colors text-sm">
+                [{product.name}]
+              </span>
+            )}
             <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(95,168,61,0.03)_50%)] bg-[length:100%_4px] pointer-events-none z-10" />
-            <span className="font-mono text-[#9A9A96] group-hover:text-[#5FA83D] transition-colors text-sm">
-              [{product.name}]
-            </span>
             {product.salePrice && (
               <span className="absolute top-4 left-4 z-20 bg-[#F2C230] text-black text-xs font-bold uppercase px-3 py-1 tracking-wider">Sale</span>
             )}
@@ -170,10 +180,24 @@ export default function ProductDetail() {
               <span className="absolute top-4 right-4 z-20 bg-[#2E5E2A] text-white text-xs font-bold uppercase px-3 py-1 tracking-wider">New</span>
             )}
           </motion.div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-square bg-[#161617] border border-[#333] flex items-center justify-center font-mono text-[#333] text-xs hover:border-[#5FA83D] transition-colors">/alt_1</div>
-            <div className="aspect-square bg-[#161617] border border-[#333] flex items-center justify-center font-mono text-[#333] text-xs hover:border-[#5FA83D] transition-colors">/alt_2</div>
-          </div>
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-4 overflow-x-auto pb-2">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`w-20 h-20 aspect-square bg-[#161617] border transition-all overflow-hidden relative flex-shrink-0 ${
+                    selectedImageIndex === idx
+                      ? "border-[#5FA83D] ring-2 ring-[#5FA83D]"
+                      : "border-[#333] hover:border-[#666] opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img} alt={`${product.name} view ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Info */}
