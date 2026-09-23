@@ -63,12 +63,6 @@ export default function Navbar() {
             <Link href="/login" className="hidden md:block text-xs font-bold uppercase text-[#888] hover:text-[#00FF41]">Login</Link>
           )}
           
-          <button className="hidden md:block hover:text-[#5FA83D] transition-colors">
-            <Search size={20} />
-          </button>
-          <button className="hidden md:block hover:text-[#5FA83D] transition-colors">
-            <Heart size={20} />
-          </button>
           <Link href="/checkout" className="relative hover:text-[#5FA83D] transition-colors">
             <ShoppingBag size={20} />
             {cartCount > 0 && (

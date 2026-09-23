@@ -323,9 +323,9 @@ export default function Home() {
         <h2 className="text-3xl font-black uppercase tracking-tighter mb-10 text-[#F2F2EF]">Transmissions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { name: "Arjun M.", review: "Midnight Signal is absolutely insane in real life. The 3M print blinded someone at a concert.", rating: 5 },
-            { name: "Priya K.", review: "The feedback loop oversized fit is exactly what I needed. Heavyweight cotton, not that flimsy stuff.", rating: 5 },
-            { name: "Rohan T.", review: "Finally a brand that doesn't feel like every other streetwear clone. Anomaly 01 is a piece of art.", rating: 5 },
+            { name: "Arjun M.", review: "Circumcision Survivor is absolutely insane in real life. The print quality is top tier.", rating: 5 },
+            { name: "Priya K.", review: "The Physique Powered By... oversized fit is exactly what I needed. Heavyweight cotton, not that flimsy stuff.", rating: 5 },
+            { name: "Rohan T.", review: "Finally a brand that doesn't feel like every other streetwear clone. Hose Bee Lyin is a piece of art.", rating: 5 },
           ].map((review, i) => (
             <m.div
               key={i}
