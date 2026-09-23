@@ -32,7 +32,7 @@ export default function Contact() {
           <div className="space-y-8">
             <div>
               <h3 className="font-bold uppercase tracking-wider text-[#FFEA00] mb-2 text-sm">Direct Line</h3>
-              <p className="text-[#E5E5E5] font-mono">transmission@threadanomaly.com</p>
+              <p className="text-[#E5E5E5] font-mono">[CLIENT_EMAIL_HERE]</p>
             </div>
             
             <div>
@@ -68,7 +68,7 @@ export default function Contact() {
                 Click below to open a secure line.
               </p>
               <a 
-                href="mailto:transmission@threadanomaly.com"
+                href="mailto:[CLIENT_EMAIL_HERE]"
                 className="inline-block w-full bg-white text-black font-black uppercase py-4 hover:bg-[#00FF41] transition-colors"
               >
                 Send Email
