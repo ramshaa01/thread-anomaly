@@ -163,8 +163,12 @@ export default function Checkout() {
                   <div className="space-y-4">
                     {items.map((item) => (
                       <div key={item.id} className="flex gap-4 bg-[#161617] p-4 border border-[#222]">
-                        <div className="w-24 h-24 bg-[#0B0B0C] border border-[#333] flex items-center justify-center font-mono text-xs text-[#444]">
-                          [img]
+                        <div className="w-24 h-24 bg-[#0B0B0C] border border-[#333] flex items-center justify-center font-mono text-xs text-[#444] relative overflow-hidden">
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
+                          ) : (
+                            <span className="text-[#333]">NO_IMG</span>
+                          )}
                         </div>
                         <div className="flex-1 flex flex-col justify-between">
                           <div className="flex justify-between items-start">

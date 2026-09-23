@@ -280,15 +280,24 @@ export default function ProductDetail() {
           {/* Qty + CTA */}
           <div className="flex gap-4 mb-12">
             <div className="flex items-center border-2 border-[#333] px-2 w-32">
-              <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="text-[#9A9A96] hover:text-white flex-1 py-4 text-center font-bold">-</button>
+              <button 
+                onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                disabled={product.stock === 0}
+                className="text-[#9A9A96] hover:text-white flex-1 py-4 text-center font-bold disabled:opacity-50"
+              >-</button>
               <span className="font-bold w-8 text-center text-[#F2F2EF]">{quantity}</span>
-              <button onClick={() => setQuantity(quantity + 1)} className="text-[#9A9A96] hover:text-white flex-1 py-4 text-center font-bold">+</button>
+              <button 
+                onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} 
+                disabled={product.stock === 0}
+                className="text-[#9A9A96] hover:text-white flex-1 py-4 text-center font-bold disabled:opacity-50"
+              >+</button>
             </div>
             <div className="flex-1 flex flex-col gap-3">
               <motion.button
                 onClick={handleAddToCart}
-                whileTap={{ scale: 0.97 }}
-                className="w-full bg-transparent border-2 border-[#F2F2EF] text-[#F2F2EF] font-black uppercase py-4 hover:bg-[#F2F2EF] hover:text-[#0B0B0C] transition-colors flex items-center justify-center gap-2"
+                disabled={product.stock === 0}
+                whileTap={product.stock > 0 ? { scale: 0.97 } : {}}
+                className="w-full bg-transparent border-2 border-[#F2F2EF] text-[#F2F2EF] font-black uppercase py-4 hover:bg-[#F2F2EF] hover:text-[#0B0B0C] transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-[#F2F2EF]"
               >
                 <motion.span
                   key={justAdded ? "added" : "idle"}
@@ -298,11 +307,15 @@ export default function ProductDetail() {
                   className="flex items-center gap-2"
                 >
                   {justAdded && <Check size={18} />}
-                  {justAdded ? "Added To Bag" : "Add To Bag"}
+                  {product.stock === 0 ? "Sold Out" : justAdded ? "Added To Bag" : "Add To Bag"}
                 </motion.span>
               </motion.button>
-              <button onClick={handleBuyNow} className="w-full bg-[#2E5E2A] text-white font-black uppercase py-4 hover:bg-[#5FA83D] transition-colors">
-                Buy It Now
+              <button 
+                onClick={handleBuyNow} 
+                disabled={product.stock === 0}
+                className="w-full bg-[#2E5E2A] text-white font-black uppercase py-4 hover:bg-[#5FA83D] transition-colors disabled:opacity-50 disabled:hover:bg-[#2E5E2A]"
+              >
+                {product.stock === 0 ? "Sold Out" : "Buy It Now"}
               </button>
             </div>
           </div>
