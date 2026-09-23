@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product) return NextResponse.json({ error: `Product not found: ${item.name}` }, { status: 404 });
+      if (product.stock <= 0) return NextResponse.json({ error: `"${product.name}" is sold out and cannot be purchased.` }, { status: 400 });
       products.push(product);
     }
 

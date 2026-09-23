@@ -1,209 +1,181 @@
-# Thread Anomaly — Local Setup Guide
+# Thread Anomaly — Developer Setup Guide
 
-> A full-stack e-commerce site for a streetwear/musicwear brand. Built with Next.js, MongoDB, JWT Auth, and Razorpay.
+> A full-stack e-commerce site for a streetwear/musicwear brand. Built with Next.js (App Router), MongoDB Atlas, JWT Auth, and Razorpay.
+
+**Live site:** https://thread-anomaly.vercel.app  
+**Repo:** https://github.com/ramshaa01/thread-anomaly
+
+---
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16.3.3 (App Router, Turbopack) |
+| Styling | Tailwind CSS |
+| Database | MongoDB Atlas (Mongoose) |
+| Auth | JWT stored in HTTP-only cookies, bcrypt password hashing |
+| Payments | Razorpay (test mode — switch to live once KYC approved) |
+| Deployment | Vercel (auto-deploy from `master`) |
+| Tests | Jest (8 tests across auth, cart, and Razorpay signature verification) |
 
 ---
 
 ## Prerequisites
 
-Make sure you have these installed before starting:
-
-| Tool | Version | Download |
-|------|---------|----------|
-| Node.js | 18+ | https://nodejs.org |
-| npm | 9+ | Included with Node |
-| MongoDB | 6+ (local) OR MongoDB Atlas (cloud) | https://www.mongodb.com/try/download/community |
+| Tool | Version |
+|---|---|
+| Node.js | 18+ |
+| npm | 9+ |
 
 ---
 
-## Step 1 — Open the Project
+## Local Setup
 
-```bash
-cd C:\Users\ramsh\.gemini\antigravity\scratch\thread-anomaly
-```
-
----
-
-## Step 2 — Install Dependencies
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
----
-
-## Step 3 — Configure Environment Variables
-
-Copy the example file and fill it in:
+### 2. Configure environment variables
 
 ```bash
-# Windows
 copy .env.example .env
 ```
 
-Then open `.env` and update these values:
+Fill in your `.env` with real values (see `.env.example` for all required keys). The critical ones:
 
 ```env
-# Required
-MONGODB_URI=mongodb://localhost:27017/thread-anomaly
-JWT_SECRET=any_long_random_string_change_me
-
-# Razorpay test keys (from dashboard.razorpay.com → Test Mode)
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxxxx
-
-# Cloudinary (optional — static placeholders used as fallback)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+MONGODB_URI=          # Your MongoDB Atlas non-SRV connection string
+JWT_SECRET=           # Long random string, minimum 32 chars
+RAZORPAY_KEY_ID=      # rzp_test_... from Razorpay Dashboard
+RAZORPAY_KEY_SECRET=  # From Razorpay Dashboard
+NEXT_PUBLIC_RAZORPAY_KEY_ID=  # Same as RAZORPAY_KEY_ID (browser-exposed)
 ```
 
-> **MongoDB Atlas:** Replace `MONGODB_URI` with your Atlas connection string:
-> `mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/thread-anomaly?retryWrites=true&w=majority`
-
----
-
-## Step 4 — Seed the Database
-
-Run this **once** to populate MongoDB with 12 products and 2 test users:
+### 3. Seed the database (first-time only)
 
 ```bash
 npm run seed
 ```
 
-Expected output:
+This inserts the **7 real products** at ₹749 each and creates two default accounts:
 
-```
-🔗 Connecting to MongoDB: mongodb://localhost:27017/thread-anomaly
-✅ Connected.
-🗑️  Cleared existing users and products.
-👤 Seeded 2 users:
-   admin@threadanomaly.com    / password: admin123    (role: admin)
-   customer@threadanomaly.com / password: customer123 (role: customer)
-👕 Seeded 12 products.
-🎉 Database seeded successfully!
-```
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@threadanomaly.com` | *(set at seed time — rotate immediately after)* |
+| Customer | `customer@threadanomaly.com` | *(set at seed time — rotate immediately after)* |
 
----
+> **Important:** The seeded passwords are defaults only. Rotate them immediately after seeding via the admin panel or directly in MongoDB Atlas. The production database has already had these rotated.
 
-## Step 5 — Start the Development Server
+### 4. Start the dev server
 
 ```bash
 npm run dev
 ```
 
-Open **http://localhost:3000** in your browser.
+Open **http://localhost:3000**.
 
 ---
 
-## Test Accounts (Seeded Automatically)
+## Product Catalog (7 real products)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@threadanomaly.com` | `admin123` |
-| Customer | `customer@threadanomaly.com` | `customer123` |
+All products are priced at ₹749 and served from MongoDB.
+
+| Name | Category | Colors | Sizes |
+|---|---|---|---|
+| Hose Bee Lyin Tee | Graphic Tees | White | S M L XL |
+| Circumcision Survivor | Oversized Fits | Black | M L XL XXL |
+| Physique Powered By... | Oversized Fits | Black | L XL XXL |
+| MILF (Man I Love Felines) | Graphic Tees | Black | S M L XL |
+| Gynaecologist | Graphic Tees | Black | M L XL |
+| Pull Up NOT OUT | Oversized Fits | Black | M L XL XXL |
+| Eat Fresh | Graphic Tees | White | S M L XL |
+
+Product images live in `public/images/products/`. Two products (Hose Bee Lyin, Physique Powered By...) have multi-image galleries.
 
 ---
 
-## End-to-End Flow Testing
+## Key Architecture Notes
 
-### Guest Browse
-1. Go to **http://localhost:3000** — hero, new arrivals and best sellers load from MongoDB
-2. Click **Shop Now** → product grid with category/sort filters
-3. Click any product card → detail page with size/color selectors
-4. Try **Add to Bag** without logging in → redirected to `/login`
+- **Admin protection:** `src/app/admin/layout.tsx` runs `getAdminUser()` server-side on every request — there is no client-side-only guard.
+- **Razorpay order creation** (`src/app/api/razorpay/order/route.ts`): totals are calculated server-side from DB prices (not client-supplied amounts). Out-of-stock items (`stock <= 0`) are rejected at the API level with a customer-readable error, not just UI-disabled.
+- **Cart:** Client-side only (localStorage via `CartContext.tsx`). No server-side cart persistence.
+- **Razorpay verify** (`src/app/api/razorpay/verify/route.ts`): HMAC SHA-256 signature verified before any order is marked PAID.
+- **Mongoose `isNew` warning:** `isNew` is a reserved Mongoose pathname. It produces a console warning on startup but does not break anything. Suppress with `suppressReservedKeysWarning: true` in the schema options if desired.
 
-### Register & Login
-1. Go to `/register` → fill in form → auto-logged in, redirected to `/shop`
-2. Or go to `/login` → use `customer@threadanomaly.com` / `customer123`
-3. Navbar updates to show Logout button
+---
 
-### Cart & Checkout
-1. While logged in, go to a product page
-2. Select size, click **Add to Bag** → cart badge updates in navbar
-3. Click bag icon → go to `/checkout`
-4. Step 1: review items, click **Proceed to Shipping**
-5. Step 2: fill shipping info, click **Pay ₹XXX** → Razorpay popup (requires test keys in `.env`)
+## Running Tests
 
-### Filters & Sort
-1. On `/shop`, click category chips (Graphic Tees, Limited Drops, etc.)
-2. Use the Sort dropdown → products re-order without page refresh
+```bash
+npm run test
+```
+
+8 tests passing across 3 suites: `auth.test.ts`, `cart.test.ts`, `razorpay.test.ts`.
+
+---
+
+## Switching to Razorpay Live Mode
+
+Once the client's KYC and bank account are approved by Razorpay:
+
+1. Get the Live keys from Razorpay Dashboard → Settings → API Keys.
+2. In Vercel, update these three environment variables:
+   - `RAZORPAY_KEY_ID` → `rzp_live_...`
+   - `RAZORPAY_KEY_SECRET` → live secret
+   - `NEXT_PUBLIC_RAZORPAY_KEY_ID` → `rzp_live_...`
+3. Trigger a Vercel redeploy (or push any commit).
+4. Run one live micro-transaction to confirm end-to-end.
+
+No code changes are required. The Razorpay SDK switches behavior entirely based on the key prefix.
+
+---
+
+## Razorpay Test Cards
+
+Use these when testing checkout locally:
+
+| Field | Value |
+|---|---|
+| Card Number | `4111 1111 1111 1111` |
+| Expiry | Any future date (e.g. `12/26`) |
+| CVV | Any 3 digits |
+| OTP | `123456` |
 
 ---
 
 ## Project Structure
 
 ```
-thread-anomaly/
-├── scripts/
-│   └── seed.ts              ← npm run seed
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── auth/        ← /register /login /me /logout
-│   │   │   ├── products/    ← GET list + GET by slug/id
-│   │   │   └── razorpay/    ← /order (create) + /verify (signature)
-│   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── checkout/
-│   │   ├── product/[id]/
-│   │   ├── shop/
-│   │   ├── about/
-│   │   └── contact/
-│   ├── components/
-│   │   ├── layout/          ← Navbar, Footer
-│   │   └── product/         ← ProductCard
-│   ├── context/
-│   │   ├── AuthContext.tsx  ← JWT/cookie session state
-│   │   └── CartContext.tsx  ← Client-side cart (localStorage)
-│   └── lib/
-│       ├── db.ts            ← MongoDB connection with caching
-│       └── models/
-│           ├── User.ts      ← bcrypt hashed passwords
-│           ├── Product.ts
-│           └── Order.ts
-├── .env.example             ← Copy to .env and fill in
-└── README.md
+src/
+├── app/
+│   ├── api/
+│   │   ├── auth/         → /register /login /logout /me
+│   │   ├── products/     → GET list + GET by slug/id
+│   │   ├── admin/        → admin product CRUD
+│   │   ├── orders/       → user order history
+│   │   └── razorpay/     → /order (create) + /verify (HMAC check)
+│   ├── admin/            → role-protected dashboard
+│   ├── checkout/         → multi-step checkout flow
+│   ├── product/[id]/     → product detail page
+│   ├── shop/             → filterable product grid
+│   ├── about/
+│   └── contact/
+├── components/
+│   ├── layout/           → Navbar, Footer
+│   └── product/          → ProductCard
+├── context/
+│   ├── AuthContext.tsx   → JWT session state
+│   └── CartContext.tsx   → localStorage cart
+└── lib/
+    ├── db.ts             → MongoDB connection (cached)
+    ├── auth.ts           → requireAdmin / getAdminUser helpers
+    ├── razorpay.ts       → HMAC signature verification utility
+    ├── order.ts          → server-side order total calculation
+    └── models/
+        ├── User.ts
+        ├── Product.ts
+        └── Order.ts
 ```
-
----
-
-## Razorpay Test Cards (Day 2)
-
-When checking out in dev mode, use these exact Razorpay test details to simulate a successful payment:
-
-| Field | Value |
-|-------|-------|
-| Card Number | `4111 1111 1111 1111` |
-| Expiry | Any future date (e.g. `12/26`) |
-| CVV | Any 3 digits (e.g. `123`) |
-| OTP | `123456` |
-
----
-
-## Running Automated Tests
-
-Basic unit and integration tests (Jest) cover cart total calculation, Razorpay signature verification, and auth middleware.
-
-```bash
-npm run test
-```
-
----
-
-## Important Notes
-
-* **Cloudinary:** To support real image uploads, set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in your `.env`. If these are omitted, the Admin UI allows you to paste standard URLs or use the fallback `/images/placeholder.svg`.
-* **Security Flag:** 🚨 Before production deployment, remember to rotate the seeded passwords (`admin123`, `customer123`).
-
----
-
-## Roadmap
-
-| Day | Focus |
-|-----|-------|
-| **Day 1 ✅** | Full project generation, MongoDB seed, local end-to-end flows |
-| **Day 2** | Live Razorpay test payment, My Orders, Wishlist, Profile |
-| **Day 3** | Vercel deployment, MongoDB Atlas, live Razorpay keys, Cloudinary images |
